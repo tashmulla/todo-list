@@ -32,18 +32,24 @@ export default function Home() {
     setEditValue(text);
   };
 
-  const handleEditSave = (e: React.KeyboardEvent<HTMLInputElement>, id: number) => {
+  const handleEditSave = (id: number) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, text: editValue } : todo
+      )
+    );
+    setEditId(null);
+    setEditValue('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, id: number) => {
     if (e.key === 'Enter') {
-      if (!editValue.trim()) return;
-      setTodos(todos.map((todo) => (todo.id === id ? { ...todo, text: editValue } : todo)));
+      handleEditSave(id);
+    } else if (e.key === 'Escape') {
       setEditId(null);
       setEditValue('');
     }
-    if (e.key === 'Escape') {
-      setEditId(null);
-      setEditValue('');
-    }
-  }
+  };
 
   return (
     <div
@@ -85,20 +91,31 @@ export default function Home() {
                   className="flex justify-between items-center bg-gray-50 border border-gray-200 rounded p-2"
                 >
                   {editId === todo.id ? (
-                    <input
-                      autoFocus
-                      type="text"
-                      className="flex-1 border border-gray-300 px-2 py-1 rounded focus:outline-none"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => handleEditSave(e, todo.id)}
-                      onBlur={() => setEditId(null)}
-                    />
+                    <div className="flex space-x-2">
+                      <input
+                        autoFocus
+                        type="text"
+                        className="flex-1 border border-gray-300 px-2 py-1 rounded focus:outline-none"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, todo.id)}
+                      />
+                      <button
+                        className="save-button bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                        onClick={() => handleEditSave(todo.id)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        className="bg-white border border-gray-300 px-4 py-2 rounded hover:bg-gray-100 transition"
+                        onClick={() => setEditId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   ) : (
                     <>
-                      <span>
-                        {todo.text}
-                      </span>
+                      <span>{todo.text}</span>
                       <div className="flex space-x-1">
                         <button
                           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
