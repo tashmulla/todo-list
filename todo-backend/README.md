@@ -28,7 +28,6 @@ uvicorn app.main:app --reload
 
 Once the server is running, open your browser and visit:
 - Docs: http://127.0.0.1:8000/docs
-- Home: http://127.0.0.1:8000
 
 5. Project structure
 
@@ -39,6 +38,7 @@ todo-backend/
 |   |-- database.py   # Database connection
 |   |-- main.py       # FastAPI entry point
 |   |-- models.py     # SQLAlchemy models
+|   |-- routes.py     # FastAPI endpoints
 |   |-- schemas.py    # Pydantic schemas
 |-- venv/             # Virtual environment (ignored)
 |-- .gitignore
