@@ -62,10 +62,10 @@ todo-backend/
 pip install -r requirements.txt
 ```
 
-2. From the `todo-backend` directory, run:
+2. Run all tests from the `todo-backend` directory:
 
 ```
 PYTHONPATH=. pytest -vv
 ```
 
-This will run the tests in extra verbose mode.
+This will run all tests in verbose mode.
