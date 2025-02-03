@@ -8,6 +8,8 @@ type Todo = {
   completed: boolean;
 };
 
+const SERVER_URL = 'http://localhost:8000';
+
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState<string>('');
@@ -15,7 +17,7 @@ export default function Home() {
   const [editValue, setEditValue] = useState<string>('');
 
   useEffect(() => {
-    fetch('http://localhost:8000/todos')
+    fetch(`${SERVER_URL}/todos`)
       .then((res) => res.json())
       .then((data) => {
         setTodos(data);
@@ -25,12 +27,18 @@ export default function Home() {
       });
   }, []);
 
+  const resetFormField = () => {
+    setNewTodo('');
+    setEditId(null);
+    setEditValue('');
+  }
+
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:8000/todos', {
+      const response = await fetch(`${SERVER_URL}/todos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newTodo }),
@@ -39,6 +47,12 @@ export default function Home() {
       if (response.ok) {
         const addedTodo = await response.json();
         setTodos([...todos, addedTodo]);
+        resetFormField();
+        return;
+      } else if (response.status === 409) {
+        alert('TODO with same text already exists!');
+        resetFormField();
+        return;
       } else {
         console.error('Failed to add todo:', response.statusText);
       }
@@ -47,40 +61,9 @@ export default function Home() {
     }
   };
 
-  const handleToggleCompleted = async (id: number, currentStatus: boolean) => {
-    // Use API endpoint to update completed status of todo
-    try {
-      const response = await fetch(
-        `http://localhost:8000/todos/${id}/completed`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ completed: !currentStatus }),
-        }
-      );
-
-      if (response.ok) {
-        const updatedTodo = await response.json();
-        setTodos((prevTodos) =>
-          prevTodos
-            .map((todo) => (todo.id === id ? updatedTodo : todo))
-            .sort((a, b) => Number(a.completed) - Number(b.completed))
-        );
-      } else {
-        console.error('Failed to update todo:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Failed to update todo:', error);
-    }
-  };
-
-  const clearCompletedTodos = () => {
-    setTodos(todos.filter((todo) => !todo.completed));
-  };
-
   const handleDeleteTodo = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/todos/${id}`, {
+      const response = await fetch(`${SERVER_URL}/todos/${id}`, {
         method: 'DELETE',
       });
 
@@ -103,14 +86,11 @@ export default function Home() {
     if (
       !editValue.trim() ||
       editValue === todos.find((todo) => todo.id === id)?.text
-    ) {
-      setEditId(null);
-      setEditValue('');
+    )
       return;
-    }
 
     try {
-      const response = await fetch(`http://localhost:8000/todos/${id}/text`, {
+      const response = await fetch(`${SERVER_URL}/todos/${id}/text`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: editValue }),
@@ -119,8 +99,7 @@ export default function Home() {
       if (response.ok) {
         const updatedTodo = await response.json();
         setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
-        setEditId(null);
-        setEditValue('');
+        resetFormField();
       } else {
         console.error('Failed to update todo:', response.statusText);
       }
@@ -129,12 +108,55 @@ export default function Home() {
     }
   };
 
+  const handleToggleCompleted = async (id: number, currentStatus: boolean) => {
+    // Use API endpoint to update completed status of todo
+    try {
+      const response = await fetch(
+        `${SERVER_URL}/todos/${id}/completed`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ completed: !currentStatus }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedTodo = await response.json();
+        setTodos((prevTodos) =>
+          prevTodos
+            .map((todo) => (todo.id === id ? updatedTodo : todo))
+            .sort((a, b) => Number(a.completed) - Number(b.completed))
+        );
+      } else {
+        console.error('Failed to update todo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+    }
+  };
+
+  const clearCompletedTodos = async () => {
+    // Use API endpoint to delete all completed todos
+    try {
+      const response = await fetch(`${SERVER_URL}/todos/completed`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setTodos(todos.filter((todo) => !todo.completed));
+      } else {
+        console.error('Failed to delete todos:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to delete todos:', error);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent, id: number) => {
     if (e.key === 'Enter') {
       handleEditSave(id);
     } else if (e.key === 'Escape') {
-      setEditId(null);
-      setEditValue('');
+      resetFormField();
     }
   };
 
