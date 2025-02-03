@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Todo = {
   id: number;
@@ -9,23 +9,42 @@ type Todo = {
 };
 
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([
-    { id: 1, text: 'Buy groceries', completed: false },
-    { id: 2, text: 'Do the laundry', completed: false },
-  ]);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState<string>('');
   const [editId, setEditId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
 
-  const handleAddTodo = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch('http://localhost:8000/todos')
+      .then((res) => res.json())
+      .then((data) => {
+        setTodos(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching todos:', err);
+      });
+  }, []);
+
+  const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-    setTodos(
-      [...todos, { id: Date.now(), text: newTodo, completed: false }].sort(
-        (a, b) => Number(a.completed) - Number(b.completed)
-      )
-    );
-    setNewTodo('');
+    
+    try {
+      const response = await fetch('http://localhost:8000/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newTodo }),
+      });
+
+      if (response.ok) {
+        const addedTodo = await response.json();
+        setTodos([...todos, addedTodo]);
+      } else {
+        console.error('Failed to add todo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to add todo:', error);
+    }
   };
 
   const handleToggleCompleted = (id: number) => {
