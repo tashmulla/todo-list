@@ -28,7 +28,7 @@ export default function Home() {
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-    
+
     try {
       const response = await fetch('http://localhost:8000/todos', {
         method: 'POST',
@@ -47,22 +47,51 @@ export default function Home() {
     }
   };
 
-  const handleToggleCompleted = (id: number) => {
-    setTodos(
-      todos
-        .map((todo) =>
-          todo.id === id ? { ...todo, completed: !todo.completed } : todo
-        )
-        .sort((a, b) => Number(a.completed) - Number(b.completed))
-    );
+  const handleToggleCompleted = async (id: number, currentStatus: boolean) => {
+    // Use API endpoint to update completed status of todo
+    try {
+      const response = await fetch(
+        `http://localhost:8000/todos/${id}/completed`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ completed: !currentStatus }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedTodo = await response.json();
+        setTodos((prevTodos) =>
+          prevTodos
+            .map((todo) => (todo.id === id ? updatedTodo : todo))
+            .sort((a, b) => Number(a.completed) - Number(b.completed))
+        );
+      } else {
+        console.error('Failed to update todo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+    }
   };
 
   const clearCompletedTodos = () => {
     setTodos(todos.filter((todo) => !todo.completed));
   };
 
-  const handleDeleteTodo = (id: number) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+  const handleDeleteTodo = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8000/todos/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setTodos(todos.filter((todo) => todo.id !== id));
+      } else {
+        console.error('Failed to delete todo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to delete todo:', error);
+    }
   };
 
   const handleEditStart = (id: number, text: string) => {
@@ -70,14 +99,34 @@ export default function Home() {
     setEditValue(text);
   };
 
-  const handleEditSave = (id: number) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, text: editValue } : todo
-      )
-    );
-    setEditId(null);
-    setEditValue('');
+  const handleEditSave = async (id: number) => {
+    if (
+      !editValue.trim() ||
+      editValue === todos.find((todo) => todo.id === id)?.text
+    ) {
+      setEditId(null);
+      setEditValue('');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/todos/${id}/text`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: editValue }),
+      });
+
+      if (response.ok) {
+        const updatedTodo = await response.json();
+        setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
+        setEditId(null);
+        setEditValue('');
+      } else {
+        console.error('Failed to update todo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, id: number) => {
@@ -147,7 +196,9 @@ export default function Home() {
                         type="checkbox"
                         className="form-checkbox h-5 w-5 accent-gray-200"
                         checked={todo.completed}
-                        onChange={() => handleToggleCompleted(todo.id)}
+                        onChange={() =>
+                          handleToggleCompleted(todo.id, todo.completed)
+                        }
                       />
                       {editId === todo.id ? (
                         <div className="flex space-x-2">
@@ -230,7 +281,9 @@ export default function Home() {
                           type="checkbox"
                           className="form-checkbox h-5 w-5 accent-gray-400"
                           checked={todo.completed}
-                          onChange={() => handleToggleCompleted(todo.id)}
+                          onChange={() =>
+                            handleToggleCompleted(todo.id, todo.completed)
+                          }
                         />
                         <span className="flex-1 line-through text-gray-500">
                           {todo.text}
