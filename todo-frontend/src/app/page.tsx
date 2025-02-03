@@ -1,31 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
-type Todo = {
-  id: number;
-  text: string;
-  completed: boolean;
-};
-
-const SERVER_URL = 'http://localhost:8000';
+import { useState } from 'react';
+import { useTodos } from './hooks/useTodos';
 
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const {
+    todos,
+    addTodo,
+    deleteTodo,
+    updateTodoText,
+    toggleTodoCompleted,
+    clearCompleted,
+  } = useTodos();
+
   const [newTodo, setNewTodo] = useState<string>('');
   const [editId, setEditId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
-
-  useEffect(() => {
-    fetch(`${SERVER_URL}/todos`)
-      .then((res) => res.json())
-      .then((data) => {
-        setTodos(data);
-      })
-      .catch((err) => {
-        console.error('Error fetching todos:', err);
-      });
-  }, []);
 
   const resetFormField = () => {
     setNewTodo('');
@@ -37,49 +27,13 @@ export default function Home() {
     e.preventDefault();
     if (!newTodo.trim()) return;
 
-    try {
-      const response = await fetch(`${SERVER_URL}/todos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: newTodo }),
-      });
-
-      if (response.ok) {
-        const addedTodo = await response.json();
-        setTodos([...todos, addedTodo]);
-        resetFormField();
-        return;
-      } else if (response.status === 409) {
-        alert('TODO with same text already exists!');
-        resetFormField();
-        return;
-      } else {
-        console.error('Failed to add todo:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Failed to add todo:', error);
+    const result = await addTodo(newTodo);
+    if (result.success) {
+      resetFormField();
+    } else if (result.message) {
+      alert(result.message);
+      resetFormField();
     }
-  };
-
-  const handleDeleteTodo = async (id: number) => {
-    try {
-      const response = await fetch(`${SERVER_URL}/todos/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setTodos(todos.filter((todo) => todo.id !== id));
-      } else {
-        console.error('Failed to delete todo:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Failed to delete todo:', error);
-    }
-  };
-
-  const handleEditStart = (id: number, text: string) => {
-    setEditId(id);
-    setEditValue(text);
   };
 
   const handleEditSave = async (id: number) => {
@@ -89,66 +43,12 @@ export default function Home() {
     )
       return;
 
-    try {
-      const response = await fetch(`${SERVER_URL}/todos/${id}/text`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: editValue }),
-      });
-
-      if (response.ok) {
-        const updatedTodo = await response.json();
-        setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
-        resetFormField();
-      } else {
-        console.error('Failed to update todo:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Failed to update todo:', error);
-    }
-  };
-
-  const handleToggleCompleted = async (id: number, currentStatus: boolean) => {
-    // Use API endpoint to update completed status of todo
-    try {
-      const response = await fetch(
-        `${SERVER_URL}/todos/${id}/completed`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ completed: !currentStatus }),
-        }
-      );
-
-      if (response.ok) {
-        const updatedTodo = await response.json();
-        setTodos((prevTodos) =>
-          prevTodos
-            .map((todo) => (todo.id === id ? updatedTodo : todo))
-            .sort((a, b) => Number(a.completed) - Number(b.completed))
-        );
-      } else {
-        console.error('Failed to update todo:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Failed to update todo:', error);
-    }
-  };
-
-  const clearCompletedTodos = async () => {
-    // Use API endpoint to delete all completed todos
-    try {
-      const response = await fetch(`${SERVER_URL}/todos/completed`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setTodos(todos.filter((todo) => !todo.completed));
-      } else {
-        console.error('Failed to delete todos:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Failed to delete todos:', error);
+    const result = await updateTodoText(id, editValue);
+    if (result.success) {
+      resetFormField();
+    } else if (result.message) {
+      alert(result.message);
+      resetFormField();
     }
   };
 
@@ -219,7 +119,7 @@ export default function Home() {
                         className="form-checkbox h-5 w-5 accent-gray-200"
                         checked={todo.completed}
                         onChange={() =>
-                          handleToggleCompleted(todo.id, todo.completed)
+                          toggleTodoCompleted(todo.id, todo.completed)
                         }
                       />
                       {editId === todo.id ? (
@@ -259,9 +159,10 @@ export default function Home() {
                               className={
                                 'bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-400 transition'
                               }
-                              onClick={() =>
-                                handleEditStart(todo.id, todo.text)
-                              }
+                              onClick={() => {
+                                setEditId(todo.id);
+                                setEditValue(todo.text);
+                              }}
                             >
                               Edit
                             </button>
@@ -269,7 +170,7 @@ export default function Home() {
                               className={
                                 'bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400 transition'
                               }
-                              onClick={() => handleDeleteTodo(todo.id)}
+                              onClick={() => deleteTodo(todo.id)}
                             >
                               ✖
                             </button>
@@ -304,7 +205,7 @@ export default function Home() {
                           className="form-checkbox h-5 w-5 accent-gray-400"
                           checked={todo.completed}
                           onChange={() =>
-                            handleToggleCompleted(todo.id, todo.completed)
+                            toggleTodoCompleted(todo.id, todo.completed)
                           }
                         />
                         <span className="flex-1 line-through text-gray-500">
@@ -314,7 +215,7 @@ export default function Home() {
                       <div className="flex space-x-1">
                         <button
                           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-400 transition"
-                          onClick={() => handleDeleteTodo(todo.id)}
+                          onClick={() => deleteTodo(todo.id)}
                         >
                           ✖
                         </button>
@@ -324,7 +225,7 @@ export default function Home() {
               </ul>
               <button
                 className="bg-red-500 text-white w-full mt-2 px-4 py-2 shadow-lg rounded-lg hover:bg-red-400 transition"
-                onClick={clearCompletedTodos}
+                onClick={clearCompleted}
               >
                 Clear Completed
               </button>
