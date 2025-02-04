@@ -10,8 +10,6 @@ services:
       - "8000:8000"
     environment:
       - TESTING=0
-    # volumes:              # Uncomment these for live-reloading during development
-    #   - ./todo-backend/app:/app/app
   
   frontend:
     build:
@@ -22,5 +20,3 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    # volumes:              # Uncomment these for live-reloading during development
-    #   - ./todo-frontend:/todo-frontend
