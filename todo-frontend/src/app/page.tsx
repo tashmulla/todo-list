@@ -70,13 +70,12 @@ export default function Home() {
         className="min-h-screen flex flex-col items-center p-6"
         style={{ background: 'var(--background)' }}
       >
-        <header className="w-full max-w-3xl text-center py-4">
-          <h1 className="text-4xl font-bold">What needs doing today?</h1>
-          <p className="text-lg mt-2">Organise your tasks, feel good.</p>
-        </header>
-
-        <main className="w-full max-w-3xl bg-white rounded-lg shadow p-6 mt-6">
+        <main className="w-full max-w-3xl bg-white border border-gray-200 rounded-lg shadow p-6 mt-6">
           <section className="mb-6">
+            <header className="w-full max-w-3xl text-center py-4">
+              <h1 className="text-4xl font-bold">What needs doing today?</h1>
+              <p className="text-lg mt-2">Organise your tasks, feel good.</p>
+            </header>
             <form className="flex mt-4" onSubmit={handleAddTodo}>
               <input
                 type="text"
