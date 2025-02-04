@@ -1,5 +1,8 @@
 from pydantic import BaseModel, Field, field_validator
 
+class HealthCheck(BaseModel):
+    status: str
+
 class TodoBase(BaseModel):
     text: str = Field(..., min_length=1, description="Text cannot be empty")
     

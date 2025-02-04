@@ -4,6 +4,10 @@ from app import crud, database, schemas
 
 router = APIRouter()
 
+@router.get("/", response_model=schemas.HealthCheck)
+def health_check():
+    return {"status": "ok"}
+
 @router.get("/todos", response_model=list[schemas.Todo])
 def get_todos(db: Session = Depends(database.get_db)):
     return crud.get_todos(db)
