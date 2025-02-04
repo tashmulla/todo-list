@@ -2,9 +2,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 from sqlalchemy.pool import StaticPool
+from dotenv import load_dotenv
 
-DATABASE_URL = "sqlite:///./todo.db"
-TEST_DATABASE_URL = "sqlite:///:memory:"
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 TESTING = os.getenv("TESTING")
 if TESTING:

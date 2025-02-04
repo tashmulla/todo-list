@@ -5,7 +5,6 @@ from app import models, schemas
 
 # Add a new TODO
 def create_todo(db: Session, todo: schemas.TodoCreate):
-    # Check if the TODO already exists
     existing_todo = db.query(models.Todo).filter(models.Todo.text == todo.text).first()
     if existing_todo:
         raise HTTPException(status_code=409, detail="TODO already exists")
