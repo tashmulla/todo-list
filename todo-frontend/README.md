@@ -28,7 +28,7 @@ This is a simple frontend application for managing a TODO list. It allows users 
   npm install
   ```
 
-## 🚀 Usage
+## 🚀 Local usage
 1. Build the project:
   ```bash
   npm build
@@ -37,4 +37,12 @@ This is a simple frontend application for managing a TODO list. It allows users 
   ```bash
   npm start
   ```
-3. Open your browser and navigate to `http://localhost:3000`!
+3. Open your browser and navigate to `http://localhost:3000`.
+
+## 👩‍💻 Local development
+1. Start the development server with:
+  ```bash
+  npm run dev
+  ```
+
+2. Open your browser and navigate to `http://localhost:3000`.

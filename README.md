@@ -12,6 +12,15 @@ Welcome to my Todo List project! This project is divided into two main parts:
 
 ## Getting Started 🚀
 
-To get started with the project, follow the instructions in the respective `README.md` files located in the `todo-frontend` and `todo-backend` directories.
+### Running the full-stack app with docker-compose
+
+From the root directory of the project, `todo-list`, ensure you have Docker running and then run the following to start up both the backend & frontend services:
+```
+docker-compose up --build
+```
+
+### Running each service separately
+
+To run each service separately, follow the local development instructions in the respective `README.md` files located in the `todo-frontend` and `todo-backend` directories.
 
 Happy coding and todo list making! 🎨✨
