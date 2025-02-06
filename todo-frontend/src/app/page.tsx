@@ -94,13 +94,13 @@ export default function Home() {
           </section>
 
           <section>
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">TODOs</h2>
-              <div className="font-semibold gap-1.5 flex">
-                <span className="bg-white text-blue-500 px-3 py-1.5 rounded-full border border-gray-200">
+              <div className="flex gap-2 text-sm font-semibold">
+                <span className="bg-white text-blue-500 px-2 py-1 rounded-full border border-gray-200">
                   Pending: {countPendingTodos}
                 </span>
-                <span className="bg-white text-green-500 px-3 py-1.5 rounded-full border border-gray-200">
+                <span className="bg-white text-green-500 px-2 py-1 rounded-full border border-gray-200">
                   Completed: {countCompletedTodos}
                 </span>
               </div>

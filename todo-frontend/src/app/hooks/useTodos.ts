@@ -6,7 +6,7 @@ export type Todo = {
   completed: boolean;
 };
 
-const SERVER_URL = 'https://nm-todo-list-backend-110c7a63f605.herokuapp.com';
+const SERVER_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
